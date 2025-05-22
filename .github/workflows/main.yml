@@ -3,7 +3,7 @@ name: Build & Deploy Flutter App
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -74,7 +74,7 @@ jobs:
       - name: GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           artifacts: |
             artifacts/build/app/outputs/**/*.apk,
             artifacts/build/ios/iphoneos/app.ipa
