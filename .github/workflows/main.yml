@@ -19,7 +19,7 @@ jobs:
          java-version: '17'       # Java 17 is stable and compatible with recent Gradle versions
 
      - uses: subosito/flutter-action@v2
-      with:
+       with:
         channel: 'stable'
         architecture: x64
 
