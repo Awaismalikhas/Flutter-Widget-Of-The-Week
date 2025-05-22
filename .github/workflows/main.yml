@@ -11,15 +11,18 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '12'
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          architecture: x64
+     - uses: actions/checkout@v3
+
+     - uses: actions/setup-java@v3
+       with:
+         distribution: 'temurin'  # Recommended over 'zulu'
+         java-version: '17'       # Java 17 is stable and compatible with recent Gradle versions
+
+     - uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        architecture: x64
+
 
       - name: Install Dependencies
         run: flutter pub get
