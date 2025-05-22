@@ -1,38 +1,55 @@
+name: Build & Release
+
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
   push:
-    branches:
-      - main
-name: "Build & Release"
+    branches: [ main ]
+
 jobs:
   build:
     name: Build & Release
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      # Set up Java 17 (Temurin)
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      # Set up Flutter (latest stable)
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           architecture: x64
 
+      # Fix Gradle plugin issues (critical for Flutter 3.16+)
+      - name: Update Gradle Config
+        run: |
+          sed -i '' 's/apply from: .*flutter_tools.gradle.*/plugins {\n    id "com.android.application"\n    id "kotlin-android"\n    id "dev.flutter.flutter-plugin-loader"\n}/g' ./android/app/build.gradle
+          sed -i '' 's/dependencies {/plugins {\n    id "com.android.application" version "7.4.2" apply false\n    id "com.android.library" version "7.4.2" apply false\n    id "org.jetbrains.kotlin.android" version "1.8.21" apply false\n}\n\ndependencies {/g' ./android/build.gradle
+
+      # Clean & build Android APK (split per ABI)
+      - run: flutter clean
+      - run: flutter pub get
       - run: flutter build apk --release --split-per-abi
+
+      # Build unsigned IPA (for iOS)
       - run: |
-          flutter build ios --no-codesign
+          flutter build ios --no-codesign --release
           cd build/ios/iphoneos
           mkdir Payload
           cd Payload
           ln -s ../Runner.app
           cd ..
           zip -r app.ipa Payload
+
+      # Upload artifacts to GitHub Releases
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}  # Use GITHUB_TOKEN instead of custom TOKEN
